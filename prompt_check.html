@@ -1,0 +1,257 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>지시문 4요소 점검기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 검수표 — 왼쪽 원문 입력, 오른쪽 4칸 판정표, 아래 고친 지시문 */
+:root {
+  --bg: #f3f5f4;
+  --paper: #ffffff;
+  --ink: #18201e;
+  --muted: #5b6764;
+  --line: #d5dcda;
+  --accent: #1f6f5c;
+  --accent-soft: #e2efeb;
+  --ok: #1f6f5c;
+  --miss: #b4442e;
+  --miss-soft: #f7e6e1;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121715; --paper: #1a2120; --ink: #e6ecea; --muted: #9aa8a4; --line: #2d3836;
+  --accent: #5cc3a6; --accent-soft: #1d3330; --ok: #5cc3a6; --miss: #f08a72; --miss-soft: #3a2420;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121715; --paper: #1a2120; --ink: #e6ecea; --muted: #9aa8a4; --line: #2d3836;
+  --accent: #5cc3a6; --accent-soft: #1d3330; --ok: #5cc3a6; --miss: #f08a72; --miss-soft: #3a2420;
+  color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px; }
+header { display: grid; gap: 4px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
+h1 { margin: 0; font-size: 26px; font-weight: 700; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+
+.panel { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 12px; min-width: 0; }
+.panel h2 { margin: 0; font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.panel h2 small { font-weight: 400; color: var(--muted); font-size: 12px; }
+
+textarea { width: 100%; box-sizing: border-box; min-height: 220px; resize: vertical; font: inherit; font-size: 14px; line-height: 1.65;
+  color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 12px; }
+textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button { font: inherit; font-size: 14px; font-weight: 500; border-radius: 4px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+button.primary { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+button:disabled { opacity: .55; cursor: default; }
+.status { font-size: 13px; color: var(--muted); }
+.status.err { color: var(--miss); }
+
+.checks { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid var(--line); }
+.checks li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.mark { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-weight: 700; border: 1.5px solid var(--line); color: var(--muted); }
+.mark.ok { background: var(--accent-soft); border-color: var(--ok); color: var(--ok); }
+.mark.miss { background: var(--miss-soft); border-color: var(--miss); color: var(--miss); }
+.check-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.check-head b { font-size: 15px; }
+.check-head span { font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; color: var(--muted); }
+.pill { font-size: 12px; padding: 1px 8px; border-radius: 99px; }
+.pill.ok { background: var(--accent-soft); color: var(--ok); }
+.pill.miss { background: var(--miss-soft); color: var(--miss); }
+.found { margin: 2px 0 0; font-size: 13.5px; }
+.note { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+
+.score { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.score b { color: var(--ink); font-size: 18px; }
+
+.revised { white-space: pre-wrap; word-break: break-word; font-size: 14.5px; line-height: 1.75; background: var(--bg); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 4px; padding: 14px 16px; margin: 0; }
+.added { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); }
+.added li + li { margin-top: 2px; }
+.example-tag { font-family: var(--font-mono); font-size: 11px; color: var(--miss); border: 1px solid var(--miss); border-radius: 3px; padding: 0 5px; margin-left: 6px; }
+.thinking { color: var(--muted); font-size: 14px; }
+@media (prefers-reduced-motion: no-preference) { .busy { animation: pulse 1.4s ease-in-out infinite; } @keyframes pulse { 50% { opacity: .5; } } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Prompt Check · 목적 · 대상 · 형식 · 제약</div>
+    <h1>지시문 4요소 점검기</h1>
+    <p class="lede">AI에게 줄 지시문을 붙여 넣고 점검하기를 누르세요. Claude가 목적·대상·형식·제약이 들어 있는지 판정하고, 빠진 부분을 채운 고친 지시문을 써 줍니다.</p>
+  </header>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>원래 지시문 <small id="charCount"></small></h2>
+      <textarea id="promptInput" aria-label="점검할 지시문">이 제품 소개 메일 좀 써줘. K2 Mobile 레이저 장비고 980nm야. 너무 길지 않게.</textarea>
+      <div class="actions">
+        <button class="primary" id="checkBtn">점검하기</button>
+        <button id="stopBtn" hidden>중지</button>
+        <button id="clearBtn">지우기</button>
+        <span class="status" id="status">예시 지시문이 들어 있습니다. 내 지시문으로 바꿔 넣으세요.</span>
+      </div>
+    </section>
+
+    <section class="panel" aria-live="polite">
+      <h2><span>판정 <span class="example-tag" id="exTag1">예시</span></span><span class="score" id="score"><b>2</b> / 4 충족</span></h2>
+      <ul class="checks" id="checks"></ul>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2><span>고친 지시문 <span class="example-tag" id="exTag2">예시</span></span><button id="copyBtn">복사</button></h2>
+    <pre class="revised" id="revised"></pre>
+    <div id="addedWrap">
+      <div class="note" style="margin-bottom:4px">채워 넣은 부분</div>
+      <ul class="added" id="added"></ul>
+    </div>
+  </section>
+</div>
+
+<script>
+const LABELS = [
+  ["purpose", "목적", "PURPOSE", "무엇을 얻으려는지"],
+  ["audience", "대상", "AUDIENCE", "누가 읽거나 쓰는지"],
+  ["format", "형식", "FORMAT", "어떤 모양으로 받을지"],
+  ["constraints", "제약", "CONSTRAINTS", "지켜야 할 조건·한계"],
+];
+
+const EXAMPLE = {
+  checks: {
+    purpose: { present: true, found: "제품 소개 메일 작성", note: "무엇을 쓸지는 분명하지만, 메일로 이루려는 결과(문의 유도, 견적 요청 등)는 없습니다." },
+    audience: { present: false, found: "", note: "누구에게 보내는 메일인지(해외 딜러, 치과의사 등) 빠져 있습니다." },
+    format: { present: false, found: "", note: "제목 포함 여부, 언어, 단락 구성 등 받을 형태가 정해지지 않았습니다." },
+    constraints: { present: true, found: "너무 길지 않게", note: "길이 제한은 있으나 기준이 모호합니다. 단어 수로 정하면 좋습니다." },
+  },
+  revised: "해외 치과 장비 딜러에게 보낼 제품 소개 메일을 영어로 써 줘.\n\n목적: 처음 연락하는 딜러가 K2 Mobile에 관심을 갖고 카탈로그나 견적을 요청하도록 하는 것.\n대상: 치과용 레이저를 취급하는 해외 의료기기 딜러(구매 담당자).\n제품 정보: K2 Mobile, 980nm 치과용 다이오드 레이저.\n형식: 제목 1줄 + 본문 3단락(인사·회사 소개 / 제품 핵심 장점 / 다음 단계 제안) + 서명란.\n제약: 본문 150단어 이내, 과장된 효능 표현 금지, 확인되지 않은 수치는 넣지 말 것.",
+  added: ["받는 사람을 해외 딜러로 지정", "메일의 목표를 카탈로그·견적 요청으로 명시", "제목+3단락 형식과 영어 작성 지정", "'너무 길지 않게'를 150단어 이내로 구체화"],
+};
+
+const $ = (id) => document.getElementById(id);
+const input = $("promptInput");
+let ctl = null;
+let lastResult = EXAMPLE;
+
+function render(r, isExample) {
+  const ul = $("checks");
+  ul.innerHTML = "";
+  let n = 0;
+  for (const [key, ko, en, hint] of LABELS) {
+    const c = (r.checks && r.checks[key]) || {};
+    const ok = !!c.present;
+    if (ok) n++;
+    const li = document.createElement("li");
+    const mark = document.createElement("div");
+    mark.className = "mark " + (ok ? "ok" : "miss");
+    mark.textContent = ok ? "✓" : "✕";
+    mark.setAttribute("aria-label", ok ? "있음" : "없음");
+    const body = document.createElement("div");
+    body.style.minWidth = "0";
+    const head = document.createElement("div");
+    head.className = "check-head";
+    const b = document.createElement("b"); b.textContent = ko;
+    const s = document.createElement("span"); s.textContent = en;
+    const p = document.createElement("span"); p.className = "pill " + (ok ? "ok" : "miss"); p.textContent = ok ? "있음" : "빠짐";
+    head.append(b, s, p);
+    body.append(head);
+    if (ok && c.found) { const f = document.createElement("p"); f.className = "found"; f.textContent = "“" + c.found + "”"; body.append(f); }
+    const note = document.createElement("p"); note.className = "note"; note.textContent = c.note || hint;
+    body.append(note);
+    li.append(mark, body);
+    ul.append(li);
+  }
+  $("score").innerHTML = "<b>" + n + "</b> / 4 충족";
+  $("revised").textContent = r.revised || "";
+  const added = $("added"); added.innerHTML = "";
+  const list = Array.isArray(r.added) ? r.added : [];
+  for (const a of list) { const li = document.createElement("li"); li.textContent = String(a); added.append(li); }
+  $("addedWrap").hidden = list.length === 0;
+  $("exTag1").hidden = $("exTag2").hidden = !isExample;
+}
+
+function updateCount() { $("charCount").textContent = input.value.length.toLocaleString() + "자"; }
+input.addEventListener("input", updateCount);
+
+function setStatus(msg, err) { const s = $("status"); s.textContent = msg; s.className = "status" + (err ? " err" : ""); }
+
+const ERR = {
+  not_granted: "이 앱이 Claude를 쓰도록 허용되지 않았습니다. 다시 열어 허용하면 사용할 수 있습니다.",
+  sampling_disabled: "이 계정에서는 Claude를 사용할 수 없습니다.",
+  rate_limited: "요청이 너무 많습니다. 잠시 뒤 다시 눌러 주세요.",
+  session_expired: "로그인이 만료되었습니다. 다시 로그인한 뒤 시도하세요.",
+  prompt_too_large: "지시문이 너무 깁니다. 줄여서 다시 넣어 주세요.",
+  invalid_json: "결과를 읽지 못했습니다. 다시 점검하기를 눌러 주세요.",
+  refused: "이 지시문은 점검할 수 없습니다. 내용을 바꿔 다시 시도하세요.",
+  empty_completion: "응답이 비어 있습니다. 지시문을 조금 더 구체적으로 적어 보세요.",
+};
+
+function buildPrompt(text) {
+  return `당신은 AI 지시문(프롬프트) 검수자입니다. 아래 <지시문>을 읽고 네 가지 요소가 들어 있는지 판정한 뒤, 빠진 요소를 채운 고친 지시문을 작성하세요.
+
+판정 기준:
+- purpose(목적): 무엇을 만들거나 얻으려는지, 그 결과로 이루려는 것
+- audience(대상): 결과물을 읽거나 쓸 사람, 또는 AI가 맡을 역할의 상대
+- format(형식): 결과물의 모양(분량 구성, 언어, 표/목록/단락, 제목 등)
+- constraints(제약): 지켜야 할 조건(길이, 금지 사항, 톤, 기한, 기준 등)
+원문에 분명히 적혀 있을 때만 present를 true로 하세요. 막연한 표현만 있으면 true로 하되 note에 구체화 방향을 적으세요.
+
+고친 지시문 작성 규칙:
+- 원문의 언어와 의도를 유지하고, 원문에 있던 정보는 빠뜨리지 마세요.
+- 빠진 요소는 원문 맥락에서 가장 그럴듯하게 채우세요. 사실(수치, 이름)을 지어내지 마세요. 정보가 꼭 필요하면 [대괄호]로 자리만 표시하세요.
+- 바로 복사해 AI에게 줄 수 있는 완성된 지시문으로 쓰세요.
+
+JSON 하나로만 답하세요. 형식:
+{"checks":{"purpose":{"present":true,"found":"원문에서 해당 부분 인용(없으면 빈 문자열)","note":"한 문장 평가 또는 보완 방향"},"audience":{...},"format":{...},"constraints":{...}},"revised":"고친 지시문 전체","added":["채워 넣은 내용 요약 1", "..."]}
+found, note, added는 한국어로 쓰세요.
+
+<지시문>
+${text}
+</지시문>`;
+}
+
+let samplePromise = window.claude?.use ? window.claude.use("sample") : Promise.resolve(null);
+
+$("checkBtn").addEventListener("click", async () => {
+  const text = input.value.trim();
+  if (!text) { setStatus("점검할 지시문을 먼저 붙여 넣으세요.", true); input.focus(); return; }
+  const sample = await samplePromise;
+  if (!sample) { setStatus("이 화면에서는 Claude를 부를 수 없습니다. claude.ai에서 열어 주세요.", true); return; }
+  ctl = new AbortController();
+  $("checkBtn").disabled = true; $("stopBtn").hidden = false;
+  setStatus("Claude가 점검하는 중입니다…");
+  $("status").classList.add("busy");
+  try {
+    const r = await sample.json(buildPrompt(text), { signal: ctl.signal });
+    if (!r || typeof r !== "object" || !r.checks) throw { code: "invalid_json" };
+    lastResult = r;
+    render(r, false);
+    setStatus("점검을 마쳤습니다.");
+  } catch (e) {
+    if (e && e.code === "cancelled") setStatus("점검을 중지했습니다.");
+    else setStatus(ERR[e && e.code] || "연결 문제로 점검하지 못했습니다. 다시 눌러 주세요.", true);
+  } finally {
+    $("status").classList.remove("busy");
+    $("checkBtn").disabled = false; $("stopBtn").hidden = true; ctl = null;
+  }
+});
+$("stopBtn").addEventListener("click", () => ctl?.abort());
+$("clearBtn").addEventListener("click", () => { input.value = ""; updateCount(); input.focus(); setStatus("지시문을 붙여 넣고 점검하기를 누르세요."); });
+$("copyBtn").addEventListener("click", async () => {
+  const t = $("revised").textContent;
+  try { await navigator.clipboard.writeText(t); $("copyBtn").textContent = "복사됨"; }
+  catch { const r = document.createRange(); r.selectNodeContents($("revised")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("copyBtn").textContent = "선택됨 · Ctrl+C"; }
+  setTimeout(() => { $("copyBtn").textContent = "복사"; }, 1800);
+});
+
+updateCount();
+render(EXAMPLE, true);
+</script>
+
+</body></html>
