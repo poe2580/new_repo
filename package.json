@@ -1,0 +1,9 @@
+{
+  "name": "outdoor-ad-report",
+  "private": true,
+  "description": "불법 옥외광고물 신고글을 안전신문고에 붙여 넣을 수 있게 정리하는 웹앱",
+  "scripts": {
+    "test": "node --test tests/report.test.mjs",
+    "start": "python3 -m http.server 4173"
+  }
+}

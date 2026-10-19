@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="불법 옥외광고물을 안전신문고 생활불편신고에 붙여 넣을 신고 초안을 만드는 앱"
+    />
+    <meta name="theme-color" content="#1d3d32" />
+    <title>옥외광고 신고초안</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d3d32'/%3E%3Ccircle cx='32' cy='32' r='16' fill='none' stroke='%23f4efe4' stroke-width='3'/%3E%3Cpath d='M24 33h16M32 25v16' stroke='%23e15a4a' stroke-width='3'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <p class="eyebrow">안전신문고 · 생활불편신고 · 불법광고물</p>
+        <h1>옥외광고 신고초안</h1>
+        <p class="lede">
+          길에서 본 현수막, 벽보, 전단을 구청이 바로 확인할 수 있는 글로 정리합니다.
+          접수는 안전신문고에서 직접 합니다.
+        </p>
+      </header>
+
+      <div class="layout">
+        <form id="draftForm" class="sheet" autocomplete="off">
+          <section class="section" id="typeField">
+            <h2>무엇을 봤나요</h2>
+            <div id="typeChoices" class="choice-grid"></div>
+            <p id="typeHint" class="hint" hidden></p>
+            <p class="field-error" data-error-for="typeId"></p>
+          </section>
+
+          <section class="section">
+            <h2>어디에 있나요</h2>
+            <div class="row">
+              <label class="field">
+                <span>시·도</span>
+                <select id="region" name="region" required>
+                  <option value="">선택</option>
+                </select>
+                <p class="field-error" data-error-for="region"></p>
+              </label>
+              <label class="field">
+                <span>발견 일시</span>
+                <input id="observedAt" name="observedAt" type="datetime-local" />
+              </label>
+            </div>
+            <label class="field">
+              <span>상세 위치</span>
+              <textarea
+                id="address"
+                name="address"
+                rows="3"
+                maxlength="180"
+                placeholder="예: 마포구 월드컵로 12 인근, 예시초등학교 정문 맞은편 횡단보도 옆"
+              ></textarea>
+              <p class="hint">도로명과 근처 건물을 적으면 지도 위치와 글을 맞춰 보기 쉽습니다.</p>
+              <p class="field-error" data-error-for="address"></p>
+            </label>
+            <fieldset class="plain">
+              <legend>붙어 있는 곳</legend>
+              <div id="spotChoices" class="chip-list"></div>
+            </fieldset>
+            <div class="row">
+              <label class="field">
+                <span>수량</span>
+                <input id="count" name="count" type="text" inputmode="numeric" maxlength="10" placeholder="3" />
+              </label>
+              <label class="field">
+                <span>크기</span>
+                <input id="size" name="size" type="text" maxlength="40" placeholder="가로 약 5m" />
+              </label>
+            </div>
+          </section>
+
+          <section class="section" id="factsField">
+            <h2>어떤 점이 눈에 띄나요</h2>
+            <p class="hint">본 것만 고르세요. 고른 문장이 신고글에 그대로 들어갑니다.</p>
+            <div id="reasonChoices" class="chip-list"></div>
+            <label class="field">
+              <span>직접 입력</span>
+              <input
+                id="customReason"
+                name="customReason"
+                type="text"
+                maxlength="120"
+                placeholder="예: 관리번호 스티커가 떨어져 있습니다"
+              />
+            </label>
+            <label class="checkline">
+              <input id="nonprofit" name="nonprofit" type="checkbox" />
+              <span>정치·노동·선거·관혼상제·학교·종교 행사 안내로 보입니다. 글이 단정 대신 확인 요청으로 바뀝니다.</span>
+            </label>
+            <p class="field-error" data-error-for="facts"></p>
+          </section>
+
+          <section class="section">
+            <h2>광고에 뭐라고 적혀 있나요</h2>
+            <div class="row">
+              <label class="field">
+                <span>상호·이름</span>
+                <input id="advertiser" name="advertiser" type="text" maxlength="40" placeholder="광고에 적힌 이름" />
+              </label>
+              <label class="field">
+                <span>연락처</span>
+                <input id="phone" name="phone" type="tel" maxlength="20" placeholder="광고에 적힌 번호" />
+              </label>
+            </div>
+            <label class="field">
+              <span>문구 요약</span>
+              <input id="adCopy" name="adCopy" type="text" maxlength="80" placeholder="예: 겨울특강 모집" />
+            </label>
+            <label class="field">
+              <span>추가 설명</span>
+              <textarea
+                id="memo"
+                name="memo"
+                rows="4"
+                maxlength="500"
+                placeholder="위험하거나 통행에 불편한 점을 짧게 적어 주세요"
+              ></textarea>
+            </label>
+          </section>
+
+          <div class="form-actions">
+            <button type="button" id="fillExample" class="ghost">예시로 채우기</button>
+            <button type="button" id="clearForm" class="ghost">지우기</button>
+          </div>
+        </form>
+
+        <aside class="preview-col">
+          <div class="preview">
+            <div class="mode" role="group" aria-label="붙여 넣을 곳">
+              <button type="button" data-mode="safety" aria-pressed="true">안전신문고 900자</button>
+              <button type="button" data-mode="office" aria-pressed="false">구청 민원</button>
+            </div>
+
+            <p id="exampleBanner" class="banner" hidden>예시입니다. 실제 장소와 문구로 바꾼 뒤 복사하세요.</p>
+            <p id="trimNote" class="banner is-warn" hidden></p>
+
+            <div id="emptyState" class="empty">
+              <p>종류와 위치를 적으면 신고글이 여기에 나타납니다.</p>
+            </div>
+
+            <article id="paper" class="paper" hidden>
+              <p class="stamp" aria-hidden="true">초안</p>
+              <p id="paperKicker" class="kicker">안전신문고에 붙여 넣을 글</p>
+              <h3 id="paperTitle"></h3>
+              <pre id="paperBody"></pre>
+            </article>
+
+            <div class="meter-row">
+              <div class="meter" aria-hidden="true"><span id="charMeter"></span></div>
+              <p id="charCount">0 / 900자</p>
+            </div>
+
+            <div class="actions">
+              <button type="button" id="copyReport" class="primary">신고글 복사</button>
+              <button type="button" id="copyTitle" class="ghost">제목만 복사</button>
+              <button type="button" id="downloadReport" class="ghost">텍스트 저장</button>
+            </div>
+            <p id="status" class="status" role="status"></p>
+
+            <section class="shots">
+              <h3>같이 찍을 사진</h3>
+              <p class="hint">안전신문고는 사진·동영상 4개까지입니다. 글과 함께 첨부하세요.</p>
+              <div id="photoShots" class="shot-list"></div>
+            </section>
+
+            <section class="where">
+              <h3>어디에 넣나요</h3>
+              <ol>
+                <li>안전신문고 앱 또는 포털을 엽니다.</li>
+                <li>생활불편신고에서 불법광고물을 고릅니다.</li>
+                <li>지도로 위치를 찍고, 복사한 글과 사진을 넣습니다.</li>
+              </ol>
+              <a class="text-link" href="https://www.safetyreport.go.kr" target="_blank" rel="noopener noreferrer">안전신문고 열기</a>
+            </section>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="site-footer">
+        <p>
+          이 앱은 신고를 대신 접수하지 않습니다. 보지 않은 사실은 적지 마세요.
+          적법 여부는 관할 시·군·구가 판단합니다. 일부 비영리 광고물은 30일 이내 표시가 허용될 수 있습니다.
+        </p>
+        <p class="source">
+          표시 방법 안내는 행정안전부 「거리가 아파요」, 접수 글자 수와 항목은 안전신문고 생활불편신고 기준입니다.
+        </p>
+      </footer>
+    </div>
+
+    <div class="dock">
+      <div>
+        <strong id="dockCount">0 / 900자</strong>
+        <span id="dockHint">종류와 위치를 적어 주세요</span>
+      </div>
+      <button type="button" id="dockCopy" class="primary">복사</button>
+    </div>
+
+    <noscript>글을 만들려면 자바스크립트가 필요합니다.</noscript>
+    <script src="./js/report.js"></script>
+    <script src="./js/app.js"></script>
+  </body>
+</html>
